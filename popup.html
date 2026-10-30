@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Extrator de Números</title>
+  <style>
+    :root {
+      --primary: #1d4ed8; --primary-hover: #1e3a8a; --bg-color: #f8fafc;
+      --text: #1e293b; --muted: #64748b; --border: #cbd5e1; --success: #059669;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      padding: 8px; width: 400px; background: var(--bg-color);
+      color: var(--text); margin: 0; overflow: hidden;
+    }
+    .header { display:flex; align-items:center; gap:7px; margin-bottom:6px;
+      border-bottom:1px solid var(--border); padding-bottom:5px; }
+    .header img { width:24px; height:24px; }
+    .header-title-wrapper { display:flex; align-items:baseline; gap:6px; }
+    h3 { margin:0; font-size:1.05rem; color:var(--primary); font-weight:700; }
+    .versao { font-size:.75rem; color:var(--muted); font-weight:600;
+      background:#e2e8f0; padding:1px 5px; border-radius:4px; }
+    .controles { display:grid; grid-template-columns:1fr 1fr; gap:6px;
+      background:#fff; padding:6px 8px; border:1px solid var(--border);
+      border-radius:6px; margin-bottom:6px; }
+    .radio-group { display:grid; grid-template-columns:1fr 1fr; gap:4px 5px; font-size:.73rem; }
+    .check-group { display:flex; flex-direction:column; gap:4px; font-size:.72rem;
+      border-left:1px solid var(--border); padding-left:7px; justify-content:center; }
+    label { cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; }
+    input[type=radio], input[type=checkbox] { margin:0; cursor:pointer; }
+    textarea { display:block; width:100%; height:64px; padding:6px 7px; border:1px solid var(--border);
+      border-radius:6px; resize:none; font-family:monospace; font-size:.8rem; margin-bottom:5px; }
+    textarea:focus { outline:2px solid var(--primary); border-color:transparent; }
+    .resumo { display:flex; flex-wrap:wrap; gap:4px; margin:0 0 5px; }
+    .contador { background:#e2e8f0; color:#334155; border-radius:5px; padding:2px 5px;
+      font-size:.66rem; font-weight:600; }
+    .contador.alerta { background:#fee2e2; color:#991b1b; }
+    .resultado { white-space:pre-wrap; overflow-wrap:anywhere; background:#fff;
+      border:1px solid var(--border); border-radius:6px; padding:7px 8px;
+      margin-bottom:5px; height:76px; overflow-y:auto; font-family:monospace;
+      font-size:.78rem; color:#0f172a; }
+    .rotulo { font-size:.72rem; font-weight:700; margin:1px 0 4px; }
+    .botoes { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+    button { background:var(--primary); color:#fff; border:0; padding:6px 7px;
+      border-radius:5px; cursor:pointer; font-weight:600; font-size:.75rem; transition:background .15s; }
+    button:hover { background:var(--primary-hover); }
+    button:active { transform:scale(.99); }
+    .btn-largo { grid-column:span 2; }
+    .btn-perigo { background:#ef4444; }
+    .btn-perigo:hover { background:#dc2626; }
+    .sucesso { background:var(--success)!important; }
+    .ajuda { font-size:.64rem; color:var(--muted); line-height:1.2; margin:4px 1px 0; }
+    .status { min-height:12px; font-size:.66rem; color:var(--muted); margin:3px 1px 0; }
+    @media (max-width: 360px) { body { width:340px; } .controles { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icon.png" alt="Ícone">
+    <div class="header-title-wrapper">
+      <h3>Extrator de Números</h3>
+      <span id="versao-app" class="versao">v--</span>
+    </div>
+  </div>
+
+  <div class="controles">
+    <div class="radio-group" role="group" aria-label="Tipo de extração">
+      <label><input type="radio" name="tipo" value="AUTO"> Automático</label>
+      <label><input type="radio" name="tipo" value="CNJ" checked> Processo CNJ</label>
+      <label><input type="radio" name="tipo" value="CPF"> CPF</label>
+      <label><input type="radio" name="tipo" value="CNPJ"> CNPJ</label>
+      <label><input type="radio" name="tipo" value="9_10_digitos"> Dígitos (9–10)</label>
+    </div>
+    <div class="check-group">
+      <label><input type="checkbox" id="remover-duplicados" checked> Sem duplicados</label>
+      <label><input type="checkbox" id="validar-dv" checked> Validar dígitos</label>
+      <label><input type="checkbox" id="com-mascara" checked> Exibir máscara</label>
+    </div>
+  </div>
+
+  <textarea id="entrada" placeholder="Cole o texto aqui..." aria-label="Texto para extrair"></textarea>
+  <div class="resumo" aria-live="polite">
+    <span class="contador" id="cnt-encontrados">Encontrados: 0</span>
+    <span class="contador" id="cnt-resultados">Resultados: 0</span>
+    <span class="contador" id="cnt-duplicados">Duplicados: 0</span>
+    <span class="contador" id="cnt-invalidos">Rejeitados: 0</span>
+  </div>
+  <div class="resultado" id="saida" aria-live="polite">O resultado aparecerá aqui...</div>
+
+  <div class="rotulo">Copiar resultados</div>
+  <div class="botoes">
+    <button id="btn-copiar">Copiar normal</button>
+    <button id="btn-copiar-linha">Copiar (linha única)</button>
+    <button id="btn-copiar-virgula">Copiar com vírgulas</button>
+    <button id="btn-copiar-sql-lista">SQL: lista de valores</button>
+    <button id="btn-limpar" class="btn-largo btn-perigo">Limpar tudo</button>
+  </div>
+  <p class="ajuda">No modo automático, todos tipos são identificados na ordem do texto.</p>
+  <div class="status" id="status" role="status"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
