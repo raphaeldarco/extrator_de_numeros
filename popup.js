@@ -162,11 +162,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("btn-gravar").addEventListener("click", async () => {
-    const STORAGE_KEY = "recorderWindowId";
     const recorderUrl = chrome.runtime.getURL("recorder/recorder.html");
 
-    // Primeiro procura uma janela já existente do gravador. Isso evita
-    // depender somente do ID salvo e impede a criação de janelas duplicadas.
+    // O ID da janela não precisa ser persistido. A própria API windows
+    // permite localizar diretamente a janela do gravador enquanto ela existir.
+    // Isso mantém o comportamento de janela única sem exigir a permissão
+    // "storage" no manifesto.
     try {
       const allWindows = await chrome.windows.getAll({ populate: true });
       const existing = allWindows.find(win =>
@@ -174,26 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       if (existing?.id) {
-        await chrome.storage.local.set({ [STORAGE_KEY]: existing.id });
         await chrome.windows.update(existing.id, { focused: true, state: "normal" });
         return;
-      }
-    } catch (_) {}
-
-    // Em seguida, tenta o ID armazenado como segunda camada de segurança.
-    try {
-      const saved = await chrome.storage.local.get(STORAGE_KEY);
-      const windowId = saved?.[STORAGE_KEY];
-      if (windowId) {
-        try {
-          const win = await chrome.windows.get(windowId);
-          if (win?.id) {
-            await chrome.windows.update(win.id, { focused: true, state: "normal" });
-            return;
-          }
-        } catch (_) {
-          await chrome.storage.local.remove(STORAGE_KEY);
-        }
       }
 
       const win = await chrome.windows.create({
@@ -204,10 +187,26 @@ document.addEventListener("DOMContentLoaded", () => {
         focused: true
       });
 
+      // Proteção contra uma condição de corrida: se outra janela do
+      // gravador surgir entre a verificação e a criação, prioriza a primeira
+      // janela já existente e fecha a duplicata recém-criada.
       if (win?.id) {
-        await chrome.storage.local.set({ [STORAGE_KEY]: win.id });
+        try {
+          const windowsAfterCreate = await chrome.windows.getAll({ populate: true });
+          const recorders = windowsAfterCreate.filter(w =>
+            (w.tabs || []).some(tab => tab.url === recorderUrl)
+          );
+
+          if (recorders.length > 1) {
+            const keeper = recorders.find(w => w.id !== win.id) || recorders[0];
+            if (keeper?.id !== win.id) {
+              await chrome.windows.remove(win.id);
+              await chrome.windows.update(keeper.id, { focused: true, state: "normal" });
+            }
+          }
+        } catch (_) {}
       }
-    } catch (e) {
+    } catch (_) {
       // Último fallback: tenta localizar novamente antes de abrir outra janela.
       try {
         const allWindows = await chrome.windows.getAll({ populate: true });
@@ -216,7 +215,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         if (existing?.id) {
           await chrome.windows.update(existing.id, { focused: true, state: "normal" });
-          return;
         }
       } catch (_) {}
     }

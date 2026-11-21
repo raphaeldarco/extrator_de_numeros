@@ -7,7 +7,6 @@
     "clipboardWrite",
     "desktopCapture",
     "identity",
-    "storage",
     "windows"
   ],
   "action": {
