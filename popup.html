@@ -6,25 +6,28 @@
   <title>Extrator de Números</title>
   <style>
     :root {
-      --primary: #1d4ed8; --primary-hover: #1e3a8a; --bg-color: #f8fafc;
-      --text: #1e293b; --muted: #64748b; --border: #cbd5e1; --success: #059669;
-      --danger: #dc2626;
+      --primary: #8f4cff; --primary-hover: #c052ff; --bg-color: #0d0a16;
+      --text: #f7f4ff; --muted: #b8aecb; --border: rgba(255,255,255,.11); --success: #10b981;
+      --danger: #ef476f; --orange:#ff9f2f; --purple2:#c052ff;
     }
     * { box-sizing: border-box; }
     body {
       font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      padding: 8px; width: 400px; background: var(--bg-color);
+      padding: 8px; width: 400px; background:
+        radial-gradient(circle at 85% 0%, rgba(143,76,255,.20), transparent 42%),
+        radial-gradient(circle at 10% 100%, rgba(255,159,47,.10), transparent 38%),
+        var(--bg-color);
       color: var(--text); margin: 0; overflow: hidden;
     }
-    .header { display:flex; align-items:center; gap:7px; margin-bottom:6px;
+    .header { display:flex; background:linear-gradient(90deg,rgba(143,76,255,.10),rgba(255,159,47,.03)); align-items:center; gap:7px; margin-bottom:6px;
       border-bottom:1px solid var(--border); padding-bottom:5px; }
     .header img { width:24px; height:24px; }
     .header-title-wrapper { display:flex; align-items:baseline; gap:6px; }
-    h3 { margin:0; font-size:1.05rem; color:var(--primary); font-weight:700; }
+    h3 { margin:0; font-size:1.05rem; background:linear-gradient(90deg,var(--orange),var(--purple2)); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:700; }
     .versao { font-size:.75rem; color:var(--muted); font-weight:600;
-      background:#e2e8f0; padding:1px 5px; border-radius:4px; }
+      background:rgba(255,255,255,.08); padding:1px 5px; border-radius:4px; }
     .controles { display:grid; grid-template-columns:1fr 1fr; gap:6px;
-      background:#fff; padding:6px 8px; border:1px solid var(--border);
+      background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025)); padding:6px 8px; border:1px solid var(--border);
       border-radius:6px; margin-bottom:6px; }
     .radio-group { display:grid; grid-template-columns:1fr 1fr; gap:4px 5px; font-size:.73rem; }
     .check-group { display:flex; flex-direction:column; gap:4px; font-size:.72rem;
@@ -33,31 +36,44 @@
     input[type=radio], input[type=checkbox] { margin:0; cursor:pointer; }
     textarea { display:block; width:100%; height:64px; padding:6px 7px; border:1px solid var(--border);
       border-radius:6px; resize:none; font-family:monospace; font-size:.8rem; margin-bottom:5px; }
-    textarea:focus { outline:2px solid var(--primary); border-color:transparent; }
+    textarea:focus { outline:2px solid rgba(143,76,255,.65); border-color:transparent; }
     .resumo { display:flex; flex-wrap:wrap; gap:4px; margin:0 0 5px; }
-    .contador { background:#e2e8f0; color:#334155; border-radius:5px; padding:2px 5px;
+    .contador { background:rgba(255,255,255,.08); color:#d9caff; border-radius:5px; padding:2px 5px;
       font-size:.66rem; font-weight:600; }
-    .contador.alerta { background:#fee2e2; color:#991b1b; }
-    .resultado { white-space:pre-wrap; overflow-wrap:anywhere; background:#fff;
+    .contador.alerta { background:rgba(239,71,111,.16); color:#ffb4c2; }
+    .resultado { white-space:pre-wrap; overflow-wrap:anywhere; background:rgba(255,255,255,.035);
       border:1px solid var(--border); border-radius:6px; padding:7px 8px;
       margin-bottom:5px; height:76px; overflow-y:auto; font-family:monospace;
-      font-size:.78rem; color:#0f172a; }
+      font-size:.78rem; color:#f7f4ff; }
     .rotulo { font-size:.72rem; font-weight:700; margin:1px 0 4px; }
     .botoes { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
-    button { background:var(--primary); color:#fff; border:0; padding:6px 7px;
-      border-radius:5px; cursor:pointer; font-weight:600; font-size:.75rem; transition:background .15s; }
-    button:hover { background:var(--primary-hover); }
+    button { background:linear-gradient(135deg,var(--orange),var(--purple)); color:#fff; border:1px solid rgba(255,255,255,.12); padding:6px 7px;
+      border-radius:5px; cursor:pointer; font-weight:600; font-size:.75rem; transition:background .15s, box-shadow .15s, transform .1s; box-shadow:0 1px 4px rgba(0,0,0,.18); }
+    button:hover { background:linear-gradient(135deg,#ffae43,#c052ff); box-shadow:0 2px 7px rgba(192,82,255,.28); }
     button:active { transform:scale(.99); }
+    .botoes button {
+      background:
+        linear-gradient(#0d0a16,#0d0a16) padding-box,
+        linear-gradient(135deg,var(--orange),var(--purple2)) border-box;
+      color:#fff;
+      border:1px solid transparent;
+    }
+    .botoes button:hover {
+      background:
+        linear-gradient(#171126,#171126) padding-box,
+        linear-gradient(135deg,var(--orange),var(--purple2)) border-box;
+      box-shadow:0 2px 8px rgba(192,82,255,.32);
+    }
     .btn-largo { grid-column:span 2; }
-    .btn-perigo { background:#ef4444; }
-    .btn-perigo:hover { background:#dc2626; }
-    .sucesso { background:var(--success)!important; }
+    .btn-perigo { background:linear-gradient(135deg,#ff9f2f,#ef476f)!important; }
+    .btn-perigo:hover { background:linear-gradient(135deg,#ffad3d,#f45b7b)!important; box-shadow:0 2px 8px rgba(239,71,111,.30); }
+    .sucesso { background:linear-gradient(135deg,#0ea66f,#13c48b)!important; }
     .ajuda { font-size:.64rem; color:var(--muted); line-height:1.2; margin:4px 1px 0; }
     .status { min-height:12px; font-size:.66rem; color:var(--muted); margin:3px 1px 0; }
 
     .gravador-separador { margin-top:7px; border-top:1px solid var(--border); padding-top:6px; }
-    #btn-gravar { background:#b91c1c; }
-    #btn-gravar:hover { background:#991b1b; }
+    #btn-gravar { background:linear-gradient(135deg,#ff9f2f,#c052ff); }
+    #btn-gravar:hover { background:linear-gradient(135deg,#ffad3d,#c052ff); }
     .gravador-info { font-size:.62rem; color:var(--muted); margin:3px 1px 0; }
 
     @media (max-width: 360px) { body { width:340px; } .controles { grid-template-columns:1fr 1fr; } }

@@ -58,6 +58,19 @@ async function fitRecorderWindow(selectionOpen=false, shareOpen=false){
 
 fitRecorderWindow(false);
 
+// Mantém apenas uma janela do gravador. O botão da extensão reutiliza esta janela
+// enquanto ela estiver aberta, trazendo-a para o foco em vez de criar outra.
+(async()=>{
+  try{
+    const current=await chrome.windows.getCurrent();
+    if(current?.id) await chrome.storage.local.set({recorderWindowId:current.id});
+  }catch(_){}
+})();
+
+window.addEventListener("beforeunload",()=>{
+  try{ chrome.storage.local.remove("recorderWindowId"); }catch(_){}
+});
+
 const MIME_TYPES=[
   "video/webm;codecs=vp9,opus",
   "video/webm;codecs=vp8,opus",

@@ -161,14 +161,65 @@ document.addEventListener("DOMContentLoaded", () => {
     else if(event.key==="Escape"){entrada.value="";atualizarTexto();}
   });
 
-  document.getElementById("btn-gravar").addEventListener("click", () => {
-    chrome.windows.create({
-      url: chrome.runtime.getURL("recorder/recorder.html"),
-      type: "popup",
-      width: 600,
-      height: 280,
-      focused: true
-    });
+  document.getElementById("btn-gravar").addEventListener("click", async () => {
+    const STORAGE_KEY = "recorderWindowId";
+    const recorderUrl = chrome.runtime.getURL("recorder/recorder.html");
+
+    // Primeiro procura uma janela já existente do gravador. Isso evita
+    // depender somente do ID salvo e impede a criação de janelas duplicadas.
+    try {
+      const allWindows = await chrome.windows.getAll({ populate: true });
+      const existing = allWindows.find(win =>
+        (win.tabs || []).some(tab => tab.url === recorderUrl)
+      );
+
+      if (existing?.id) {
+        await chrome.storage.local.set({ [STORAGE_KEY]: existing.id });
+        await chrome.windows.update(existing.id, { focused: true, state: "normal" });
+        return;
+      }
+    } catch (_) {}
+
+    // Em seguida, tenta o ID armazenado como segunda camada de segurança.
+    try {
+      const saved = await chrome.storage.local.get(STORAGE_KEY);
+      const windowId = saved?.[STORAGE_KEY];
+      if (windowId) {
+        try {
+          const win = await chrome.windows.get(windowId);
+          if (win?.id) {
+            await chrome.windows.update(win.id, { focused: true, state: "normal" });
+            return;
+          }
+        } catch (_) {
+          await chrome.storage.local.remove(STORAGE_KEY);
+        }
+      }
+
+      const win = await chrome.windows.create({
+        url: recorderUrl,
+        type: "popup",
+        width: 600,
+        height: 280,
+        focused: true
+      });
+
+      if (win?.id) {
+        await chrome.storage.local.set({ [STORAGE_KEY]: win.id });
+      }
+    } catch (e) {
+      // Último fallback: tenta localizar novamente antes de abrir outra janela.
+      try {
+        const allWindows = await chrome.windows.getAll({ populate: true });
+        const existing = allWindows.find(win =>
+          (win.tabs || []).some(tab => tab.url === recorderUrl)
+        );
+        if (existing?.id) {
+          await chrome.windows.update(existing.id, { focused: true, state: "normal" });
+          return;
+        }
+      } catch (_) {}
+    }
   });
 
   atualizarTexto();
