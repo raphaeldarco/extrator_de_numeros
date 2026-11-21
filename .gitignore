@@ -1,0 +1,64 @@
+# ==============================
+# Extrator de Números
+# ==============================
+
+# Pacotes gerados para distribuição
+*.zip
+*.crx
+*.xpi
+
+# Pastas de versões/pacotes locais
+dist/
+build/
+release/
+releases/
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+
+# Logs
+*.log
+logs/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos de editores
+.vscode/
+.idea/
+*.code-workspace
+
+# Ambiente Python - caso volte a ser utilizado
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Arquivos de credenciais / segredos
+.env
+.env.*
+*.secret
+secrets/
+credentials/
+client_secret*.json
+service-account*.json
+credentials*.json
+
+# Certificados e chaves privadas
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Arquivos pessoais de teste
+testes/
+teste/
+screenshots/
+publicado/

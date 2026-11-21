@@ -54,12 +54,18 @@
     .sucesso { background:var(--success)!important; }
     .ajuda { font-size:.64rem; color:var(--muted); line-height:1.2; margin:4px 1px 0; }
     .status { min-height:12px; font-size:.66rem; color:var(--muted); margin:3px 1px 0; }
+
+    .gravador-separador { margin-top:7px; border-top:1px solid var(--border); padding-top:6px; }
+    #btn-gravar { background:#b91c1c; }
+    #btn-gravar:hover { background:#991b1b; }
+    .gravador-info { font-size:.62rem; color:var(--muted); margin:3px 1px 0; }
+
     @media (max-width: 360px) { body { width:340px; } .controles { grid-template-columns:1fr 1fr; } }
   </style>
 </head>
 <body>
   <div class="header">
-    <img src="icon.png" alt="Ícone">
+    <img src="icons/icon48.png" alt="Ícone">
     <div class="header-title-wrapper">
       <h3>Extrator de Números</h3>
       <span id="versao-app" class="versao">v--</span>
@@ -98,6 +104,12 @@
     <button id="btn-copiar-sql-lista">SQL: lista de valores</button>
     <button id="btn-limpar" class="btn-largo btn-perigo">Limpar tudo</button>
   </div>
+
+  <div class="gravador-separador">
+    <button id="btn-gravar" class="btn-largo">🎥 Gravar tela</button>
+    <div class="gravador-info">Abre o gravador integrado da extensão. Não requer instalação de programa.</div>
+  </div>
+
   <p class="ajuda">No modo automático, todos tipos são identificados na ordem do texto.</p>
   <div class="status" id="status" role="status"></div>
 
