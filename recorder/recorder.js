@@ -43,9 +43,9 @@ let directVideoRecording=false;
 
 // Ajusta a janela ao conteúdo visível. Mantemos a janela compacta
 // quando o gravador está parado e ampliamos apenas durante a seleção.
-async function fitRecorderWindow(selectionOpen=false){
+async function fitRecorderWindow(selectionOpen=false, shareOpen=false){
   const width=600;
-  const height=selectionOpen?520:280;
+  const height=selectionOpen?520:(shareOpen?360:280);
   try{
     if(typeof chrome!=="undefined" && chrome.windows?.getCurrent && chrome.windows?.update){
       const win=await chrome.windows.getCurrent();
@@ -553,9 +553,11 @@ function showCloudStatus(text, show=true){
   cloudStatusEl.textContent=text;
   cloudStatusEl.classList.toggle("show",show);
 }
-function showShareResult(url){
+async function showShareResult(url){
   sharedVideoUrl=url;
   shareResultEl.classList.remove("hidden");
+  // Expande a janela para que o bloco de compartilhamento fique totalmente visível.
+  await fitRecorderWindow(false,true);
 }
 
 uploadDriveBtn?.addEventListener("click", async ()=>{
@@ -572,7 +574,7 @@ uploadDriveBtn?.addEventListener("click", async ()=>{
     if(result.shareWarning){
       showCloudStatus(`Vídeo enviado, mas o compartilhamento público não foi habilitado: ${result.shareWarning}`);
     }else{
-      showCloudStatus("Vídeo enviado com sucesso. Link pronto para compartilhar.");
+      showCloudStatus(`Vídeo enviado para o Google Drive • ${result.folderName || "Ext-gravações de tela"}`);
     }
     showShareResult(result.url);
   }catch(e){

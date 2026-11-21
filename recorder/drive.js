@@ -4,6 +4,45 @@ const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
 const DRIVE_API = "https://www.googleapis.com/drive/v3";
 const DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
 
+const DRIVE_FOLDER_NAME = "Ext-gravações de tela";
+const DRIVE_FOLDER_MIME = "application/vnd.google-apps.folder";
+
+async function getOrCreateDriveFolder(token) {
+  const q = [
+    `name = '${DRIVE_FOLDER_NAME.replace(/'/g, "\\'")}'`,
+    `mimeType = '${DRIVE_FOLDER_MIME}'`,
+    `trashed = false`,
+    `'root' in parents`
+  ].join(" and ");
+
+  const listUrl = `${DRIVE_API}/files?spaces=drive&corpora=user&pageSize=10&fields=files(id,name,mimeType,parents)&q=${encodeURIComponent(q)}`;
+  const listResponse = await driveRequest(listUrl, {}, token);
+  const data = await listResponse.json();
+  const existing = data?.files?.find(file => file?.id);
+
+  if (existing?.id) return existing.id;
+
+  const createResponse = await driveRequest(
+    `${DRIVE_API}/files?fields=id,name,mimeType,parents`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=UTF-8" },
+      body: JSON.stringify({
+        name: DRIVE_FOLDER_NAME,
+        mimeType: DRIVE_FOLDER_MIME,
+        parents: ["root"]
+      })
+    },
+    token
+  );
+
+  const created = await createResponse.json();
+  if (!created?.id) {
+    throw new Error("O Google Drive não retornou o identificador da pasta de gravações.");
+  }
+  return created.id;
+}
+
 async function getDriveToken(interactive = true) {
   if (!chrome?.identity?.getAuthToken) {
     throw new Error("A autenticação do Google não está disponível nesta instalação.");
@@ -58,10 +97,11 @@ async function driveRequest(url, options = {}, token) {
   return response;
 }
 
-async function uploadResumable(blob, filename, token, onProgress) {
+async function uploadResumable(blob, filename, token, onProgress, folderId) {
   const metadata = {
     name: filename,
-    mimeType: blob.type || "video/webm"
+    mimeType: blob.type || "video/webm",
+    parents: [folderId]
   };
 
   // Upload retomável: evita montar um multipart/related gigante em memória e
@@ -130,15 +170,29 @@ async function uploadBlobToDrive(blob, filename, onProgress) {
   let token = await getDriveToken(true);
   let file;
 
-  // Se o token em cache estiver expirado, invalida-o e tenta uma única vez
-  // com um novo token. Isso evita falhas desnecessárias com HTTP 401.
+  // Garante que todas as gravações da extensão fiquem centralizadas em uma
+  // única pasta na raiz do Google Drive. Se ela ainda não existir, é criada
+  // automaticamente pela própria extensão.
+  let folderId;
   try {
-    file = await uploadResumable(blob, filename, token, onProgress);
+    folderId = await getOrCreateDriveFolder(token);
   } catch (err) {
     if (err?.status !== 401) throw err;
     await invalidateDriveToken(token);
     token = await getDriveToken(true);
-    file = await uploadResumable(blob, filename, token, onProgress);
+    folderId = await getOrCreateDriveFolder(token);
+  }
+
+  // Se o token em cache estiver expirado, invalida-o e tenta uma única vez
+  // com um novo token. Isso evita falhas desnecessárias com HTTP 401.
+  try {
+    file = await uploadResumable(blob, filename, token, onProgress, folderId);
+  } catch (err) {
+    if (err?.status !== 401) throw err;
+    await invalidateDriveToken(token);
+    token = await getDriveToken(true);
+    // O ID da pasta continua válido; não é necessário recriá-la.
+    file = await uploadResumable(blob, filename, token, onProgress, folderId);
   }
 
   if (!file?.id) {
@@ -202,6 +256,7 @@ async function uploadBlobToDrive(blob, filename, onProgress) {
     id: linkData.id || file.id,
     name: linkData.name || filename,
     url: linkData.webViewLink || fallbackUrl,
-    shareWarning
+    shareWarning,
+    folderName: DRIVE_FOLDER_NAME
   };
 }
