@@ -77,3 +77,18 @@ footer { max-width:1160px; margin:auto; padding:30px 7vw 50px; border-top:1px so
   footer { display:block; }
   footer div + div { margin-top:10px; }
 }
+
+.nav-links { display:flex; align-items:center; gap:24px; }
+.nav-links a { color:var(--muted); text-decoration:none; }
+.nav-links a:hover { color:white; }
+.privacy-actions { display:flex; gap:12px; flex-wrap:wrap; }
+.document-links { display:flex; align-items:center; gap:24px; flex-wrap:wrap; margin-bottom:50px; }
+.document-links .back { margin-bottom:0; }
+.document-link { color:#d9caff; text-decoration:none; font-weight:700; }
+.document-link:hover { color:white; }
+.footer-separator { color:#665d75; margin:0 5px; }
+@media (max-width: 800px) {
+  .nav-links { gap:12px; font-size:.9rem; }
+  .document-links { display:block; }
+  .document-links .document-link { display:inline-block; margin-top:10px; }
+}
