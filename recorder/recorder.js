@@ -374,18 +374,27 @@ function stopCurrentSegment(finalize){
 
 async function pauseRecording(){
   if(!mediaRecorder || mediaRecorder.state!=="recording")return;
-  await stopCurrentSegment(false);
-  paused=true;
-  pauseTimer();
-  pauseBtn.innerHTML="<span class=\"icon icon-play\"></span><span class=\"btn-label\">Continuar</span>";
-  setState("Pausado");
-  infoEl.textContent="Gravação pausada.";
+
+  // Pausar o mesmo MediaRecorder mantém um único contêiner WebM.
+  // Não devemos chamar stop() aqui e criar outro MediaRecorder no resume,
+  // pois concatenar segmentos WebM independentes pode gerar um arquivo
+  // que apresenta erro exatamente no ponto da pausa.
+  try{
+    mediaRecorder.pause();
+    paused=true;
+    pauseTimer();
+    pauseBtn.innerHTML="<span class=\"icon icon-play\"></span><span class=\"btn-label\">Continuar</span>";
+    setState("Pausado");
+    infoEl.textContent="Gravação pausada.";
+  }catch(e){
+    showError("Não foi possível pausar a gravação: "+(e?.message||e));
+  }
 }
 
 async function resumeRecording(){
-  if(!recordStream)return;
+  if(!mediaRecorder || mediaRecorder.state!=="paused")return;
   try{
-    await startRecorderSegment();
+    mediaRecorder.resume();
     paused=false;
     resumeTimer();
     pauseBtn.innerHTML="<span class=\"icon icon-pause\"></span><span class=\"btn-label\">Pausar</span>";
