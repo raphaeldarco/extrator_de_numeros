@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Extrator de Números",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Extrai e valida processos CNJ, CPF, CNPJ numérico/alfanumérico e sequências de 9 a 10 dígitos localmente. Inclui gravação de tela.",
   "permissions": [
     "clipboardWrite",
